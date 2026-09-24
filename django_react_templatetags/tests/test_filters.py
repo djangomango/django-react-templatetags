@@ -15,9 +15,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
     def test_react_tag(self):
         "The react_render inserts one components into the template"
 
-        out = Template(
-            "{% load react %}" '{% react_render component="Component" %}'
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         self.assertTrue('<div id="Component_' in out)
 
@@ -25,9 +23,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
         "The react_render inserts two components into the template"
 
         out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" %}'
-            '{% react_render component="Component" %}'
+            '{% load react %}{% react_render component="Component" %}{% react_render component="Component" %}'
         ).render(self.mocked_context)
 
         self.assertTrue('<div id="Component_' in out)
@@ -38,11 +34,9 @@ class ReactIncludeComponentTest(SimpleTestCase):
 
         self.mocked_context["component_name"] = "DynamicComponentName"
 
-        out = Template(
-            "{% load react %}"
-            "{% react_render component=component_name %}"
-            "{% react_print %}"
-        ).render(self.mocked_context)
+        out = Template("{% load react %}{% react_render component=component_name %}{% react_print %}").render(
+            self.mocked_context
+        )
 
         self.assertTrue("React.createElement(DynamicComponentName" in out)
 
@@ -52,9 +46,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
         self.mocked_context["component_data"] = {"name": "Tom Waits"}
 
         out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" data=component_data %}'
-            "{% react_print %}"
+            '{% load react %}{% react_render component="Component" data=component_data %}{% react_print %}'
         ).render(self.mocked_context)
 
         self.assertTrue('{"name": "Tom Waits"}' in out)
@@ -63,20 +55,16 @@ class ReactIncludeComponentTest(SimpleTestCase):
     def test_react_component_prefix(self):
         "Tests that a prefix is added to the component createElement script"
 
-        out = Template(
-            "{% load react %}" '{% react_render component="Component" %}'
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         self.assertTrue('<div id="Components.Component_' in out)
 
     def test_print_tag(self):
         "Makes sure the react_render gets emptied from context after print"
 
-        out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" %}'
-            "{% react_print %}"
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" %}{% react_print %}').render(
+            self.mocked_context
+        )
 
         self.assertTrue("ReactDOM.render(" in out)
         self.assertTrue("React.createElement(Component" in out)
@@ -86,11 +74,9 @@ class ReactIncludeComponentTest(SimpleTestCase):
     def test_print_tag_prefix(self):
         "Makes sure react_print outputs ReactDOM.render with react prefix"
 
-        out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" %}'
-            "{% react_print %}"
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" %}{% react_print %}').render(
+            self.mocked_context
+        )
 
         self.assertTrue("React.createElement(ReactNamespace.Component" in out)
 
@@ -100,9 +86,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
         self.mocked_context["component_identifier"] = "TomWaits"
 
         out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" identifier=component_identifier %}'  # NOQA
-            "{% react_print %}"
+            '{% load react %}{% react_render component="Component" identifier=component_identifier %}{% react_print %}'
         ).render(self.mocked_context)
 
         self.assertTrue("TomWaits" in out)
@@ -110,30 +94,27 @@ class ReactIncludeComponentTest(SimpleTestCase):
     def test_class_property(self):
         "Makes sure class property are applied"
 
-        out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" class="component-class" %}'  # NOQA
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" class="component-class" %}').render(
+            self.mocked_context
+        )
 
         self.assertTrue('class="component-class"' in out)
 
     def test_unresolved_props_wont_raise_error(self):
         "Makes sure class property are applied"
 
-        out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" props=nonexisting_val %}'  # NOQA
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" props=nonexisting_val %}').render(
+            self.mocked_context
+        )
 
         self.assertTrue('<div id="' in out)
 
     def test_class_property_from_variable(self):
         self.mocked_context["class_name"] = "component-class"
 
-        out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" class=class_name %}'  # NOQA
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" class=class_name %}').render(
+            self.mocked_context
+        )
 
         self.assertTrue('class="component-class"' in out)
 
@@ -145,9 +126,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
         self.mocked_context["component_data"] = person
 
         out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" data=component_data %}'
-            "{% react_print %}"
+            '{% load react %}{% react_render component="Component" data=component_data %}{% react_print %}'
         ).render(self.mocked_context)
 
         self.assertTrue('"first_name": "Tom"' in out)
@@ -158,7 +137,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
             "Skip this test in django 2 due to different output format"
             return
 
-        class NoRepresentation(object):
+        class NoRepresentation:
             pass
 
         instance = NoRepresentation()
@@ -166,9 +145,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
 
         with self.assertRaises(TypeError) as err:
             Template(
-                "{% load react %}"
-                '{% react_render component="Component" data=component_data %}'
-                "{% react_print %}"
+                '{% load react %}{% react_render component="Component" data=component_data %}{% react_print %}'
             ).render(self.mocked_context)
 
         self.assertTrue(
@@ -188,7 +165,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
 
         out = Template(
             "{% load react %}"
-            '{% react_render component="Component" prop_person=person prop_album=album %}'  # NOQA
+            '{% react_render component="Component" prop_person=person prop_album=album %}'
             "{% react_print %}"
         ).render(self.mocked_context)
 
@@ -208,7 +185,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
 
         out = Template(
             "{% load react %}"
-            '{% react_render component="Component" data=component_data prop_person=person %}'  # NOQA
+            '{% react_render component="Component" data=component_data prop_person=person %}'
             "{% react_print %}"
         ).render(self.mocked_context)
 
@@ -223,9 +200,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
         self.mocked_context["component_data"] = {"name": "Tom Waits"}
 
         out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" props=component_data %}'  # NOQA
-            "{% react_print %}"
+            '{% load react %}{% react_render component="Component" props=component_data %}{% react_print %}'
         ).render(self.mocked_context)
 
         self.assertTrue('"name": "Tom Waits"' in out)
@@ -239,9 +214,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
         self.mocked_context["request"] = RequestFactory().get("/random")
 
         out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" data=component_data %}'
-            "{% react_print %}"
+            '{% load react %}{% react_render component="Component" data=component_data %}{% react_print %}'
         ).render(self.mocked_context)
 
         self.assertTrue('"title": "Night On Earth"' in out)
@@ -254,9 +227,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
         self.mocked_context["component_data"] = {"name": "ÅÄÖ"}
 
         out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" data=component_data %}'
-            "{% react_print %}"
+            '{% load react %}{% react_render component="Component" data=component_data %}{% react_print %}'
         ).render(self.mocked_context)
 
         self.assertTrue('{"name": "\\u00c5\\u00c4\\u00d6"}' in out)
@@ -265,9 +236,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
         "Test that standalone string props are not returned as null"
 
         out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" prop_country="Sweden" %}'
-            "{% react_print %}"
+            '{% load react %}{% react_render component="Component" prop_country="Sweden" %}{% react_print %}'
         ).render(self.mocked_context)
 
         self.assertTrue('{"country": "Sweden"}' in out)
@@ -284,11 +253,7 @@ class ReactIncludeComponentTest(SimpleTestCase):
 
     def test_data_script_is_included(self):
         out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" identifier="my_id" %}'
-            "{% react_print %}"
+            '{% load react %}{% react_render component="Component" identifier="my_id" %}{% react_print %}'
         ).render(self.mocked_context)
 
-        self.assertFalse(
-            out.startswith('<script id="my_id_data" type="application/json"')
-        )
+        self.assertFalse(out.startswith('<script id="my_id_data" type="application/json"'))

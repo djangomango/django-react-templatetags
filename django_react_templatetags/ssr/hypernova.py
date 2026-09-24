@@ -1,21 +1,30 @@
 import logging
 import re
+from typing import Any
 
 import hypernova
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
-hypernova_id_re = re.compile(r"data-hypernova-id=\"([\w\-]*)\"")
-hypernova_key_re = re.compile(r"data-hypernova-key=\"([\w\-]*)\"")
+hypernova_id_re = re.compile(r'data-hypernova-id="([\w\-]*)"')
+hypernova_key_re = re.compile(r'data-hypernova-key="([\w\-]*)"')
 
 
 class HypernovaService:
-    def load_or_empty(self, component, headers={}, ssr_context=None):
-        # from hypernova.plugins.dev_mode import DevModePlugin
+    """Service handling Hypernova server-side rendering for React components."""
+
+    def load_or_empty(
+        self,
+        component: dict[str, Any],
+        headers: dict[str, str] | None = None,
+        ssr_context: Any = None,
+    ) -> dict[str, Any]:
+        """Request component SSR HTML via Hypernova or return empty structure on failure."""
+        if headers is None:
+            headers = {}
 
         renderer = hypernova.Renderer(
             settings.REACT_RENDER_HOST,
-            # [DevModePlugin(logger)] if settings.DEBUG else [],
             [],
             timeout=get_request_timeout(),
             headers=headers,
@@ -28,9 +37,7 @@ class HypernovaService:
                 props["context"] = ssr_context
             inner_html = renderer.render({component["name"]: props})
         except Exception as e:
-            msg = "SSR request to '{}' failed: {}".format(
-                settings.REACT_RENDER_HOST, e.__class__.__name__
-            )
+            msg = f"SSR request to '{getattr(settings, 'REACT_RENDER_HOST', '')}' failed: {e.__class__.__name__}"
             logger.exception(msg)
 
         if not inner_html:
@@ -51,7 +58,8 @@ class HypernovaService:
         }
 
 
-def get_request_timeout():
+def get_request_timeout() -> int | float:
+    """Return configured SSR timeout in seconds."""
     if not hasattr(settings, "REACT_RENDER_TIMEOUT"):
         return 20
 

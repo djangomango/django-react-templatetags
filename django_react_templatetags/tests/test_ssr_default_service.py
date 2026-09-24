@@ -1,9 +1,9 @@
+import contextlib
 import json
+from unittest import mock
 
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+with contextlib.suppress(ImportError):
+    pass
 
 from django.template import Context, Template
 from django.test import SimpleTestCase, override_settings
@@ -28,9 +28,7 @@ class SSRTemplateTest(SimpleTestCase):
 
         mocked.side_effect = [MockResponse({"error": "not found"}, 404)]
 
-        out = Template(
-            "{% load react %}" '{% react_render component="Component" %}'
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         self.assertTrue('<div id="Component_' in out)
 
@@ -38,9 +36,7 @@ class SSRTemplateTest(SimpleTestCase):
     def test_that_only_html_resp_are_shown_in_template(self, mocked):
         mocked.side_effect = [MockResponse("<h1>Title</h1>", 200)]
 
-        out = Template(
-            "{% load react %}" '{% react_render component="Component" %}'
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         self.assertFalse("{'html': " in out)
 
@@ -50,9 +46,7 @@ class SSRTemplateTest(SimpleTestCase):
 
         mocked.side_effect = [MockResponse("<h1>Title</h1>", 200)]
 
-        out = Template(
-            "{% load react %}" '{% react_render component="Component" %}'
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         self.assertTrue("<h1>Title</h1>" in out)
 
@@ -68,8 +62,7 @@ class SSRTemplateTest(SimpleTestCase):
         self.mocked_context["component_data"] = {"album": "Real gone"}
 
         Template(
-            "{% load react %}"
-            '{% react_render component="Component" prop_person=person data=component_data %}'  # NOQA
+            '{% load react %}{% react_render component="Component" prop_person=person data=component_data %}'
         ).render(self.mocked_context)
 
         request_body = {
@@ -94,10 +87,9 @@ class SSRTemplateTest(SimpleTestCase):
         self.mocked_context["movie"] = movie
         self.mocked_context["search_term"] = "Stapler"
 
-        Template(
-            "{% load react %}"
-            '{% react_render component="Component" prop_movie=movie %}'
-        ).render(self.mocked_context)
+        Template('{% load react %}{% react_render component="Component" prop_movie=movie %}').render(
+            self.mocked_context
+        )
 
         request_body = {
             "componentName": "Component",
@@ -121,10 +113,9 @@ class SSRTemplateTest(SimpleTestCase):
 
         self.mocked_context["ssr_ctx"] = {"location": "http://localhost"}
 
-        Template(
-            "{% load react %}"
-            '{% react_render component="Component" ssr_context=ssr_ctx %}'
-        ).render(self.mocked_context)
+        Template('{% load react %}{% react_render component="Component" ssr_context=ssr_ctx %}').render(
+            self.mocked_context
+        )
 
         request_body = {
             "componentName": "Component",
@@ -139,9 +130,7 @@ class SSRTemplateTest(SimpleTestCase):
         "The SSR uses default headers with json as conten type"
         mocked.side_effect = [MockResponse("Foo Bar", 200)]
 
-        Template("{% load react %}" '{% react_render component="Component" %}').render(
-            self.mocked_context
-        )
+        Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         headers = {
             "Content-type": "application/json",
@@ -157,9 +146,7 @@ class SSRTemplateTest(SimpleTestCase):
         "The SSR uses custom headers if present"
         mocked.side_effect = [MockResponse("Foo Bar", 200)]
 
-        Template("{% load react %}" '{% react_render component="Component" %}').render(
-            self.mocked_context
-        )
+        Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         self.assertTrue(mocked.call_count == 1)
         self.assertEqual(mocked.call_args[1]["headers"]["Authorization"], "Basic 123")
@@ -169,11 +156,9 @@ class SSRTemplateTest(SimpleTestCase):
         "Makes sure ReactDOM.hydrate is used when SSR is active"
         mocked.side_effect = [MockResponse("Foo Bar", 200)]
 
-        out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" %}'
-            "{% react_print %}"
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" %}{% react_print %}').render(
+            self.mocked_context
+        )
 
         self.assertTrue("ReactDOM.hydrate(" in out)
 
@@ -181,9 +166,7 @@ class SSRTemplateTest(SimpleTestCase):
     def test_ssr_params_are_stored_in_component_queue(self, mocked):
         mocked.side_effect = [MockResponse("Foo Bar", 200)]
 
-        Template("{% load react %}" '{% react_render component="Component" %}').render(
-            self.mocked_context
-        )
+        Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         queue = self.mocked_context["REACT_COMPONENTS"]
         self.assertTrue("ssr_params" in queue[0])

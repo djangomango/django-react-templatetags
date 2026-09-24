@@ -1,11 +1,11 @@
+import contextlib
 import logging
+from unittest import mock
 
 from .mock_response import MockResponse
 
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+with contextlib.suppress(ImportError):
+    pass
 
 from django.template import Context, Template
 from django.test import SimpleTestCase, override_settings
@@ -28,9 +28,7 @@ class HypernovaTemplateTest(SimpleTestCase):
 
         mocked.side_effect = [MockResponse({"error": "not found"}, 404, ok=False)]
 
-        out = Template(
-            "{% load react %}" '{% react_render component="Component" %}'
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         self.assertTrue('<div id="Component_' in out)
 
@@ -43,9 +41,7 @@ class HypernovaTemplateTest(SimpleTestCase):
             )
         ]
 
-        out = Template(
-            "{% load react %}" '{% react_render component="Component" %}'
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         self.assertFalse("{'html': " in out)
 
@@ -60,9 +56,7 @@ class HypernovaTemplateTest(SimpleTestCase):
             )
         ]
 
-        out = Template(
-            "{% load react %}" '{% react_render component="Component" %}'
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         self.assertTrue("<h1>Title</h1>" in out)
 
@@ -83,8 +77,7 @@ class HypernovaTemplateTest(SimpleTestCase):
         self.mocked_context["component_data"] = {"album": "Real gone"}
 
         Template(
-            "{% load react %}"
-            '{% react_render component="Component" prop_person=person data=component_data %}'  # NOQA
+            '{% load react %}{% react_render component="Component" prop_person=person data=component_data %}'
         ).render(self.mocked_context)
 
         request_body = {
@@ -110,10 +103,9 @@ class HypernovaTemplateTest(SimpleTestCase):
         self.mocked_context["movie"] = movie
         self.mocked_context["search_term"] = "Stapler"
 
-        Template(
-            "{% load react %}"
-            '{% react_render component="Component" prop_movie=movie %}'
-        ).render(self.mocked_context)
+        Template('{% load react %}{% react_render component="Component" prop_movie=movie %}').render(
+            self.mocked_context
+        )
 
         request_body = {
             "movie": {
@@ -136,9 +128,7 @@ class HypernovaTemplateTest(SimpleTestCase):
             )
         ]
 
-        Template("{% load react %}" '{% react_render component="Component" %}').render(
-            self.mocked_context
-        )
+        Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         headers = {
             "Content-type": "application/json",
@@ -159,9 +149,7 @@ class HypernovaTemplateTest(SimpleTestCase):
             )
         ]
 
-        Template("{% load react %}" '{% react_render component="Component" %}').render(
-            self.mocked_context
-        )
+        Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         self.assertTrue(mocked.call_count == 1)
         self.assertEqual(mocked.call_args[1]["headers"]["Authorization"], "Basic 123")
@@ -175,9 +163,7 @@ class HypernovaTemplateTest(SimpleTestCase):
             )
         ]
 
-        Template("{% load react %}" '{% react_render component="Component" %}').render(
-            self.mocked_context
-        )
+        Template('{% load react %}{% react_render component="Component" %}').render(self.mocked_context)
 
         queue = self.mocked_context["REACT_COMPONENTS"]
         self.assertTrue("ssr_params" in queue[0])
@@ -195,10 +181,9 @@ class HypernovaTemplateTest(SimpleTestCase):
             )
         ]
 
-        out = Template(
-            "{% load react %}"
-            '{% react_render component="Component" no_placeholder=1 %}'
-        ).render(self.mocked_context)
+        out = Template('{% load react %}{% react_render component="Component" no_placeholder=1 %}').render(
+            self.mocked_context
+        )
 
         queue = self.mocked_context["REACT_COMPONENTS"]
         self.assertEqual(len(queue), 1)
@@ -279,18 +264,14 @@ class HypernovaServiceTest(SimpleTestCase):
         logging.disable(logging.NOTSET)
 
 
-def mock_hypernova_success_response(
-    body, component_name="App", id="novaid-1", key="Appjs"
-):
+def mock_hypernova_success_response(body, component_name="App", id="novaid-1", key="Appjs"):
     html = (
-        '<div data-hypernova-key="{}" data-hypernova-id="{}">'
-        "{}".format(key, id, body)
+        f'<div data-hypernova-key="{key}" data-hypernova-id="{id}">'
+        f"{body}"
         + "</div>\n"
-        + '<script type="application/json" data-hypernova-key="{}" data-hypernova-id="{}">'.format(
-            key, id
-        )
+        + f'<script type="application/json" data-hypernova-key="{key}" data-hypernova-id="{id}">'
         + "<!--{}--></script>"
-    )  # NOQA
+    )
 
     return {
         "success": True,

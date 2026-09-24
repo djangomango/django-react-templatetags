@@ -1,9 +1,6 @@
-"""
-This modules manages SSR rendering logic
-"""
-
 import json
 import logging
+from typing import Any
 
 import requests
 from django.conf import settings
@@ -12,23 +9,31 @@ logger = logging.getLogger(__name__)
 
 
 class SSRService:
-    def load_or_empty(self, component, headers={}, ssr_context=None):
-        request_json = (
-            '{{"componentName": "{0}", "props": {1}, "context": {2}}}'.format(
-                component["name"],
-                component["json"],
-                json.dumps(ssr_context) if ssr_context else {},
-            )
+    """Service handling standard HTTP server-side rendering for React components."""
+
+    def load_or_empty(
+        self,
+        component: dict[str, Any],
+        headers: dict[str, str] | None = None,
+        ssr_context: Any = None,
+    ) -> dict[str, Any]:
+        """Request component SSR HTML or return empty structure on failure."""
+        if headers is None:
+            headers = {}
+
+        request_json = json.dumps(
+            {
+                "componentName": component["name"],
+                "props": component.get("json_obj") or json.loads(component["json"]),
+                "context": ssr_context or {},
+            }
         )
 
         try:
             inner_html = self.load(request_json, headers)
         except requests.exceptions.RequestException as e:
             inner_html = ""
-
-            msg = "SSR request to '{}' failed: {}".format(
-                settings.REACT_RENDER_HOST, e.__class__.__name__
-            )
+            msg = f"SSR request to '{getattr(settings, 'REACT_RENDER_HOST', '')}' failed: {e.__class__.__name__}"
             logger.exception(msg)
 
         return {
@@ -36,7 +41,8 @@ class SSRService:
             "params": {},
         }
 
-    def load(self, request_json, headers):
+    def load(self, request_json: str, headers: dict[str, str]) -> str:
+        """Perform HTTP POST request to SSR render endpoint."""
         req = requests.post(
             settings.REACT_RENDER_HOST,
             timeout=get_request_timeout(),
@@ -48,7 +54,8 @@ class SSRService:
         return req.text
 
 
-def get_request_timeout():
+def get_request_timeout() -> int | float:
+    """Return configured SSR timeout in seconds."""
     if not hasattr(settings, "REACT_RENDER_TIMEOUT"):
         return 20
 
